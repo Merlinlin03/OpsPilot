@@ -33,6 +33,25 @@ python main.py
 
 页面默认在 `http://127.0.0.1:18082/`。只在同一 Wi-Fi 使用时，可监听 `0.0.0.0` 并通过电脑的局域网 IP 访问；这不等于公网部署。
 
+## 临时外网演示（无需云服务器）
+
+安装官方 Cloudflare `cloudflared`，保持 MySQL 和本机服务运行。打开两个终端：
+
+```powershell
+cd D:\shangguigu\Vibecoding_finetune\OpsPilot
+.\.venv\Scripts\python.exe -m uvicorn app.api.app:app --host 127.0.0.1 --port 18082
+```
+
+另一个终端运行：
+
+```powershell
+cloudflared tunnel --url http://127.0.0.1:18082 --protocol http2
+```
+
+输出中的 `https://...trycloudflare.com` 是临时外网入口，可通过手机移动网络测试。重启通道会生成新地址，电脑关机、休眠或进程退出后无法访问。按 Ctrl+C 关闭对应终端进程。只将链接发给需要演示的人，聊天调用会消耗你配置的模型额度。
+
+官方说明：https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/
+
 ## 上传边界
 
 `.env`、虚拟环境、IDE 设置、本地技能、开发记录、日志、私钥、测试数据库及旧练习目录不进入 Git。`.env.example` 只有占位值。真实模型密钥只配置在部署环境，禁止写进前端文件、Dockerfile 或构建参数。
