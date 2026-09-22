@@ -1,0 +1,35 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: opspilot
+      MYSQL_USER: opspilot
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18082:18082"
+    environment:
+      LLM_MODEL: ${LLM_MODEL:-qwen-plus}
+      llm_api_key: ${llm_api_key:?Set llm_api_key in .env}
+      llm_base_url: ${llm_base_url:?Set llm_base_url in .env}
+      database_url: mysql+aiomysql://opspilot:${MYSQL_PASSWORD}@db:3306/opspilot?charset=utf8mb4
+      ops_api_base_url: mock://opspilot
+      app_host: 0.0.0.0
+      app_port: 18082
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "python -m app.init_db && exec python -m uvicorn app.api.app:app --host 0.0.0.0 --port 18082"]
+volumes:
+  mysql_data:

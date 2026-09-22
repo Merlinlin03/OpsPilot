@@ -1,0 +1,208 @@
+slots:
+  payment_order_id:
+    type: text
+    label: 支付订单号
+    description: App Store、Google Play 或 Stripe 的支付/订阅订单号
+
+  subscription_issue_type:
+    type: text
+    label: 订阅问题类型
+    description: 例如误扣费、Premium 未生效、取消订阅后仍扣费
+
+  support_ticket_id:
+    type: text
+    label: 支持工单号
+    description: OpsPilot 生成的海外用户支持工单编号
+
+  route_team:
+    type: text
+    label: 负责团队
+    description: 当前问题应流转到的团队
+
+  reply_draft:
+    type: text
+    label: 回复草稿
+    description: 面向海外用户的中英混合或多语言回复建议
+
+  app_version:
+    type: text
+    label: App 版本
+    description: 用户反馈中涉及的 App 版本号
+
+  device_model:
+    type: text
+    label: 设备型号
+    description: 用户使用的设备型号或系统版本
+
+  issue_summary:
+    type: text
+    label: 问题摘要
+    description: 对用户反馈或故障现象的结构化摘要
+
+  feedback_id:
+    type: text
+    label: 反馈编号
+    description: App Store、Google Play、站内反馈或客服会话中的反馈编号
+
+  country:
+    type: text
+    label: 国家/地区
+    description: 用户所在国家或市场
+
+  operation_todo_id:
+    type: text
+    label: 运营待办编号
+    description: OpsPilot 生成的运营跟进待办编号
+
+flows:
+  onboarding:
+    name: 欢迎引导
+    description: 向用户介绍订阅、应用使用和广告体验支持。
+    steps:
+      - id: start
+        type: start
+        next: respond
+
+      - id: respond
+        type: action
+        action: action_response
+        args:
+          text: "你好，我是 OpsPilot 智能客服，可以帮你解决订阅扣费、会员未开通、应用闪退和广告体验问题。请告诉我你遇到了什么情况。"
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  subscription_support:
+    name: 订阅支持
+    description: 处理海外用户误扣费、订阅未生效、Premium 权益异常等问题，收集支付订单号并生成回复草稿和工单路由。
+    steps:
+      - id: start
+        type: start
+        next: ask_subscription_issue_type
+
+      - id: ask_subscription_issue_type
+        type: collect
+        slot_name: subscription_issue_type
+        response:
+          text: "你遇到的是扣费后会员未开通、重复扣费，还是取消订阅后仍被扣费？"
+        next: ask_payment_order_id
+
+      - id: ask_payment_order_id
+        type: collect
+        slot_name: payment_order_id
+        response:
+          text: "请提供 App Store / Google Play / Stripe 的支付订单号；如果暂时没有，也可以先说明购买平台和大致扣费时间。"
+        next: build_subscription_context
+
+      - id: build_subscription_context
+        type: action
+        action: action_lookup_subscription_context
+        next: respond_subscription_support
+
+      - id: respond_subscription_support
+        type: action
+        action: action_response
+        args:
+          text: "已整理你提供的订阅问题和订单号：{{ slots.payment_order_id }}。请确认购买平台是 App Store、Google Play 还是 Stripe，我会继续提供对应的处理指引。目前还未核验支付记录或提交退款。"
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  crash_issue_support:
+    name: 崩溃/版本问题支持
+    description: 处理海外用户反馈 App 崩溃、卡顿、更新后异常等问题，收集版本和设备信息并生成技术支持工单。
+    steps:
+      - id: start
+        type: start
+        next: ask_app_version
+
+      - id: ask_app_version
+        type: collect
+        slot_name: app_version
+        response:
+          text: "请提供 App 版本号，例如 iOS 3.8.2 或 Android 5.1.0。"
+        next: ask_device_model
+
+      - id: ask_device_model
+        type: collect
+        slot_name: device_model
+        response:
+          text: "请补充设备型号和系统版本，例如 iPhone 14 / iOS 18.4 或 Pixel 8 / Android 15。"
+        next: create_technical_ticket
+
+      - id: create_technical_ticket
+        type: action
+        action: action_create_technical_ticket
+        next: respond_crash_issue
+
+      - id: respond_crash_issue
+        type: action
+        action: action_response
+        args:
+          text: "收到，你使用的应用版本是 {{ slots.app_version }}，设备是 {{ slots.device_model }}。请描述闪退前进行了哪些操作、是否每次都会发生，我会继续帮你排查。"
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  ad_experience_escalation:
+    name: 广告体验投诉升级
+    description: 识别海外用户关于广告过多、插屏频繁、误触广告等负面反馈，并创建运营跟进待办。
+    steps:
+      - id: start
+        type: start
+        next: ask_feedback_id
+
+      - id: ask_feedback_id
+        type: collect
+        slot_name: feedback_id
+        response:
+          text: "请描述广告出现的位置、频率，以及是否存在误触或无法关闭的情况；如果已有反馈编号，也可以一起提供。"
+        next: ask_country
+
+      - id: ask_country
+        type: collect
+        slot_name: country
+        response:
+          text: "请问你目前在哪个国家或地区使用应用？不同地区的广告展示可能有所不同。"
+        next: create_ad_review_todo
+
+      - id: create_ad_review_todo
+        type: action
+        action: action_create_ad_review_todo
+        next: respond_ad_review
+
+      - id: respond_ad_review
+        type: action
+        action: action_response
+        args:
+          text: "抱歉广告影响了你的使用体验。已整理你在 {{ slots.country }} 的反馈。请再说明广告出现在应用的哪个页面，我会继续帮你排查；目前尚未提交到人工处理系统。"
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  human_handoff:
+    name: 人工升级
+    description: 将高风险、付款争议、隐私投诉或用户强烈不满的问题升级给人工支持团队。
+    steps:
+      - id: start
+        type: start
+        next: respond
+
+      - id: respond
+        type: action
+        action: action_response
+        args:
+          text: "理解你希望由人工协助。目前这里还不能直接接通人工客服。你可以通过应用内的帮助或联系我们入口寻求人工支持；也可以继续描述问题，我会尽力帮你排查。"
+        next: end
+
+      - id: end
+        type: end
+        next: []

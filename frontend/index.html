@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpsPilot AI 智能客服</title>
+    <link rel="stylesheet" href="./styles.css?v=20260921-2" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="top-nav">
+        <a class="brand" href="#chat" aria-label="OpsPilot 首页">
+          <span class="brand-mark">OP</span>
+          <span class="brand-copy">
+            <strong>OpsPilot AI 智能客服</strong>
+            <span>面向海外用户的产品帮助中心</span>
+          </span>
+        </a>
+      </header>
+
+      <main class="support-layout">
+        <aside class="help-sidebar" aria-label="帮助分类">
+          <section class="welcome-card">
+            <p class="eyebrow">智能客服</p>
+            <h1>你好，需要什么帮助？</h1>
+            <p>订阅未生效、应用闪退或广告体验问题，我们会协助你排查处理。</p>
+          </section>
+
+          <section class="category-list" id="category-list" aria-label="问题分类"></section>
+          <section class="account-card">
+            <p class="eyebrow">当前账号</p>
+            <dl>
+              <div><dt>订阅计划</dt><dd>尚未查询</dd></div>
+              <div><dt>地区</dt><dd>尚未提供</dd></div>
+              <div><dt>服务语言</dt><dd>中文 / English</dd></div>
+            </dl>
+          </section>
+        </aside>
+
+        <section class="chat-panel" id="chat" aria-label="AI 智能客服对话">
+          <header class="chat-header">
+            <div class="assistant-meta">
+              <span class="assistant-avatar">AI</span>
+              <span>
+                <strong>AI 出海客服助手</strong>
+                <small>产品使用与订阅支持</small>
+              </span>
+            </div>
+            <span class="chat-status" id="chat-status" role="status"></span>
+          </header>
+
+          <div class="message-list" id="message-list" aria-live="polite"></div>
+
+          <form class="composer" id="chat-form">
+            <label class="sr-only" for="message-input">输入你的问题</label>
+            <textarea
+              id="message-input"
+              rows="1"
+              placeholder="输入你的问题，或粘贴订单号 / 反馈编号..."
+              required
+            ></textarea>
+            <button class="send-button" id="send-button" type="submit">发送 <span>→</span></button>
+          </form>
+        </section>
+        <aside class="product-sidebar" aria-label="产品支持信息">
+          <section class="product-section">
+            <p class="eyebrow">产品与服务</p>
+            <h2>每一个问题，都有回应</h2>
+            <p class="product-intro">从订阅权益到应用使用，陪你解决遇到的问题。</p>
+            <dl class="product-details">
+              <div><dt>订阅支持</dt><dd>Premium 权益与扣费</dd></div>
+              <div><dt>购买平台</dt><dd>App Store / Google Play / Stripe</dd></div>
+              <div><dt>技术支持</dt><dd>应用闪退与版本异常</dd></div>
+              <div><dt>体验反馈</dt><dd>广告展示与误触问题</dd></div>
+            </dl>
+          </section>
+          <section class="product-section">
+            <p class="eyebrow">订阅与订单</p>
+            <h2>查找你的购买记录</h2>
+            <div class="purchase-guide"><strong>App Store</strong><p>设置 → Apple 账户 → 媒体与购买项目 → 查看账户 → 购买记录</p></div>
+            <div class="purchase-guide"><strong>Google Play</strong><p>个人资料 → 付款和订阅 → 预算和历史记录</p></div>
+            <div class="purchase-guide"><strong>其他购买渠道</strong><p>查看支付成功后的收据邮件，确认订单编号和购买时间。</p></div>
+            <p class="privacy-note">请勿发送密码、验证码或完整银行卡号。</p>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="./app.js?v=20260921-2"></script>
+  </body>
+</html>

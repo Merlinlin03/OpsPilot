@@ -1,0 +1,202 @@
+flows:
+  system_task_started:
+    description: Flow for acknowledging that a new task has started
+    name: task started acknowledgement
+    steps:
+      - id: start
+        type: start
+        next: acknowledge
+
+      - id: acknowledge
+        type: action
+        action: action_response
+        args:
+          mode: static
+          text: "好的，我们先处理{{ context.started_flow_name }}。"
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  system_task_resumed:
+    description: Flow for acknowledging that a paused task has been resumed
+    name: task resumed acknowledgement
+    steps:
+      - id: start
+        type: start
+        next: acknowledge
+
+      - id: acknowledge
+        type: action
+        action: action_response
+        args:
+          mode: static
+          text: "好的，我们继续刚才的{{ context.resumed_flow_name }}。"
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  system_completed:
+    description: A flow has been completed and there is nothing else to be done
+    name: completion marker
+    steps:
+      - id: start
+        type: start
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  system_cannot_handle:
+    description: Flow for handling requests the assistant cannot support
+    name: cannot handle request
+    steps:
+      - id: start
+        type: start
+        next:
+          - if: "context.get('reason') == 'clarification_rejected'"
+            then: clarification_rejected
+          - if: "context.get('reason') == 'not_supported'"
+            then: not_supported
+          - if: "context.get('reason') == 'no_relevant_answer'"
+            then: no_relevant_answer
+          - else: ask_rephrase
+
+      - id: clarification_rejected
+        type: action
+        action: action_response
+        args:
+          mode: rephrase
+          text: "我刚才理解偏了。你可以重新说明是订阅/Premium 问题、崩溃版本问题，还是广告体验投诉吗？"
+          prompt: |
+            你是 OpsPilot，直接为 App 的最终用户服务的智能客服，不是内部运营助手。用“你”称呼用户，帮助解决订阅、应用故障和广告体验问题。默认中文，用户明确要求其他语言时再切换。不要输出内部字段名、运营指标、团队路由或回复草稿；不要沿用历史消息中错误的内部助手身份。未实际完成的退款、核验、工单提交或人工转接不能声称已完成。
+            请基于下面的建议回复，生成一句直接面向用户的自然中文回复，保持原意，不要扩写。
+            对话上下文：
+            {{ history }}
+            用户最后一句：
+            用户：{{ user_message }}
+            建议回复：{{ current_response }}
+            改写后的回复：
+        next: end
+
+      - id: not_supported
+        type: action
+        action: action_response
+        args:
+          mode: rephrase
+          text: "我理解你的意思，不过这个能力目前还没有接入。"
+          prompt: |
+            你是 OpsPilot，直接为 App 的最终用户服务的智能客服，不是内部运营助手。用“你”称呼用户，帮助解决订阅、应用故障和广告体验问题。默认中文，用户明确要求其他语言时再切换。不要输出内部字段名、运营指标、团队路由或回复草稿；不要沿用历史消息中错误的内部助手身份。未实际完成的退款、核验、工单提交或人工转接不能声称已完成。
+            请基于下面的建议回复，生成一句直接面向用户的自然中文回复，保持原意，不要扩写。
+            对话上下文：
+            {{ history }}
+            用户最后一句：
+            用户：{{ user_message }}
+            建议回复：{{ current_response }}
+            改写后的回复：
+        next: end
+
+      - id: no_relevant_answer
+        type: action
+        action: action_response
+        args:
+          mode: rephrase
+          text: "我暂时没有查到足够信息。请补充 App 版本、设备型号、支付订单号或问题描述。"
+          prompt: |
+            你是 OpsPilot，直接为 App 的最终用户服务的智能客服，不是内部运营助手。用“你”称呼用户，帮助解决订阅、应用故障和广告体验问题。默认中文，用户明确要求其他语言时再切换。不要输出内部字段名、运营指标、团队路由或回复草稿；不要沿用历史消息中错误的内部助手身份。未实际完成的退款、核验、工单提交或人工转接不能声称已完成。
+            请基于下面的建议回复，生成一句直接面向用户的自然中文回复，保持原意，不要扩写。
+            对话上下文：
+            {{ history }}
+            用户最后一句：
+            用户：{{ user_message }}
+            建议回复：{{ current_response }}
+            改写后的回复：
+        next: end
+
+      - id: ask_rephrase
+        type: action
+        action: action_response
+        args:
+          mode: rephrase
+          text: "我还没有完全理解。请说明你要处理的是订阅扣费、Premium 未生效、崩溃卡顿、广告投诉，还是人工升级。"
+          prompt: |
+            你是 OpsPilot，直接为 App 的最终用户服务的智能客服，不是内部运营助手。用“你”称呼用户，帮助解决订阅、应用故障和广告体验问题。默认中文，用户明确要求其他语言时再切换。不要输出内部字段名、运营指标、团队路由或回复草稿；不要沿用历史消息中错误的内部助手身份。未实际完成的退款、核验、工单提交或人工转接不能声称已完成。
+            请基于下面的建议回复，生成一句直接面向用户的自然中文回复，保持原意，不要扩写。
+            对话上下文：
+            {{ history }}
+            用户最后一句：
+            用户：{{ user_message }}
+            建议回复：{{ current_response }}
+            改写后的回复：
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  system_collect_information:
+    description: Flow for asking the user for a slot value during a collect step
+    name: collect information
+    steps:
+      - id: start
+        type: start
+        next: ask
+
+      - id: ask
+        type: action
+        action: action_response
+        args: context.response
+        next: listen
+
+      - id: listen
+        type: action
+        action: action_listen
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  system_task_interrupted:
+    description: Flow for acknowledging that the current task has been interrupted
+    name: task interrupted acknowledgement
+    steps:
+      - id: start
+        type: start
+        next: acknowledge
+
+      - id: acknowledge
+        type: action
+        action: action_response
+        args:
+          mode: static
+          text: "好的，我们先把 {{ context.interrupted_flow_name }} 暂停，优先处理 {{ context.started_flow_name }}。"
+        next: end
+
+      - id: end
+        type: end
+        next: []
+
+  system_task_canceled:
+    description: Flow for acknowledging that the current task was canceled
+    name: task canceled acknowledgement
+    steps:
+      - id: start
+        type: start
+        next: acknowledge
+
+      - id: acknowledge
+        type: action
+        action: action_response
+        args:
+          mode: static
+          text: "好的，{{ context.canceled_flow_name }} 先取消。"
+        next: end
+
+      - id: end
+        type: end
+        next: []

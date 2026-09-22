@@ -1,0 +1,13 @@
+*
+!requirements.txt
+!app/
+!app/**
+!flow_config/
+!flow_config/**
+!frontend/
+!frontend/**
+app/test/
+**/__pycache__/
+**/*.pyc
+**/*.log
+**/.env*
